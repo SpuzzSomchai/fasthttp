@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.106
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fasthttp", "fasthttp\fasthttp.csproj", "{120FB001-1193-42BC-924A-83664050427D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fasthttps", "fasthttps\fasthttps.csproj", "{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{120FB001-1193-42BC-924A-83664050427D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{120FB001-1193-42BC-924A-83664050427D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{120FB001-1193-42BC-924A-83664050427D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{120FB001-1193-42BC-924A-83664050427D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCBFC5D2-D490-400A-9612-D20AF4533928}
+	EndGlobalSection
+EndGlobal
