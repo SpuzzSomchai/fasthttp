@@ -44,6 +44,7 @@ namespace FastHTTP.IO.Mime
                 string[] pair = formattedLine.Split(' ');
                 mimes[pair[0]] = pair[1];
             }
+            tr.Close();
             return mimes;
         }
     }

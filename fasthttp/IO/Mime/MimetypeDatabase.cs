@@ -24,7 +24,7 @@ namespace FastHTTP.IO.Mime
         public MimetypeDatabase(string path)
         {
             MimeDefinitionsFileParser parser = new MimeDefinitionsFileParser(path);
-            this.mimes = parser.Parse();
+            mimes = parser.Parse();
         }
 
         /// <summary>

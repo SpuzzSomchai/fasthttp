@@ -67,14 +67,14 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
         {
             PrintColor(ConsoleColor.Cyan, "HTTP server has started.");
         }
-
+        
         private void Server_OnException(Exception e)
         {
-            if(typeof(HttpListenerException).IsAssignableFrom(e.GetType()))
+            /*if(typeof(HttpListenerException).IsAssignableFrom(e.GetType()))
             {
                 WriteLineError("Error whilst starting server: {0}", e.Message);
                 Environment.Exit(1);
-            }
+            }*/
 #if DEBUG
             Console.WriteLine(e.Message);
             Console.WriteLine(e.Source);
