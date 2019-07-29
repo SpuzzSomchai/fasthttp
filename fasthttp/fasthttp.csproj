@@ -51,6 +51,8 @@
     <Compile Include="CLI\CommandResult.cs" />
     <Compile Include="CLI\ICommand.cs" />
     <Compile Include="CLI\ConsoleExtensions.cs" />
+    <Compile Include="IO\Mime\MimeDefinitionsFileParser.cs" />
+    <Compile Include="IO\Mime\MimetypeDatabase.cs" />
     <Compile Include="Logging\BufferedFileLogger.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="Logging\Logger.cs" />

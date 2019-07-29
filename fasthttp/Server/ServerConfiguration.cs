@@ -21,6 +21,6 @@ namespace FastHTTP.Server
         public bool SinglePageMode { get; set; } = false;
         public string SinglePagePath { get; set; } = "";
         public string WWWFolder { get; set; } = "";
-        public string[] IndexPrefixes { get; set; } = new string[] { ".html", ".htm" };
+        public string[] IndexPages { get; set; } = new string[] { "index.html", "index.htm" };
     }
 }

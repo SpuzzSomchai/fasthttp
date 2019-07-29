@@ -18,6 +18,7 @@ namespace FastHTTP.Server
     {
         public delegate void HttpExceptionEventHandler(Exception e);
         public delegate void HttpGenericEventHandler();
+        public delegate void HttpCgiCallEventHandler(string cgiPath); //TODO enable CGI support. Implement method to check file extension to run a certain CGI executable. CGI executable use stdout for output results.
 
         /// <summary>
         /// An event that fires whenever an exception occurs
@@ -30,9 +31,10 @@ namespace FastHTTP.Server
         public event HttpGenericEventHandler ServerStarted;
 
         private ServerConfiguration config;
-        private Thread[] supportingThreads;
+        private volatile Thread[] supportingThreads;
         private HttpListener hl;
         private Logger logger;
+        private string htmlFolder;
 
         /// <summary>
         /// Creates a new HTTP/HTTPS server with the specified configuration
@@ -48,7 +50,20 @@ namespace FastHTTP.Server
             if (!Directory.Exists(config.WWWFolder)) Directory.CreateDirectory(config.WWWFolder);
             if (!Directory.Exists(config.WWWFolder + "\\logs")) Directory.CreateDirectory(config.WWWFolder + "\\logs");
             if (!Directory.Exists(config.WWWFolder + "\\html")) Directory.CreateDirectory(config.WWWFolder + "\\html");
+            htmlFolder = config.WWWFolder + "\\html";
             if (!config.DisableLogging) logger = new StackedLogger(new ConsoleLogger(), new BufferedFileLogger(Path.Combine(config.WWWFolder, "logs\\latest.log")));
+        }
+
+        private async Task ServeFile(HttpListenerContext ctx, string path, int statusCode = 200)
+        {
+            logger.Log(LogLevel.INFORMATION, "Serve file " + path);
+            //TODO check if file can be accessed and if it exists. Throw appropriate error codes if not found/not accessible
+            //TODO improve and make buffered write, CopyToAsync could be slow
+            ctx.Response.StatusCode = statusCode;
+            ctx.Response.ContentType = "text/html"; //TODO determine mime type for file served
+            using(FileStream fs = new FileStream(path, FileMode.Open))
+                await fs.CopyToAsync(ctx.Response.OutputStream);
+            ctx.Response.Close();
         }
 
         /// <summary>
@@ -66,12 +81,35 @@ namespace FastHTTP.Server
                 ExceptionOccured?.Invoke(ex);
             }
             while(true)
-            {
+            {//TODO consider removing await keywords since file serving does not require itself to be executed sequentially
                 try
                 {
                     var context = await hl.GetContextAsync();
-                    logger.Log(LogLevel.INFORMATION, "Got request from host {0}", context.Request.RemoteEndPoint);
-                    
+                    logger.Log(LogLevel.INFORMATION, "Got request from host {0} for URL {1}", context.Request.RemoteEndPoint, context.Request.RawUrl);
+                    string pathInFS = Path.Combine(htmlFolder, context.Request.RawUrl.Substring(1).Replace('/', Path.DirectorySeparatorChar));
+                    logger.Log("Debug path in file system relative to html dir: " + pathInFS);
+                    //Check if specified path is a directory. If it is, check if any indexes exist and if not, display dir listing if its enabled
+
+                    if (Directory.Exists(pathInFS))
+                    {
+                        bool foundIndexPage = false;
+                        //TODO break out of loop to start dir listing
+                        foreach(var indexPageName in config.IndexPages)
+                        {
+                            string indexPath = Path.Combine(pathInFS, indexPageName);
+                            if(File.Exists(indexPath))
+                            {
+                                logger.Log(LogLevel.INFORMATION, "Not showing dir listing for URL, found index file " + indexPath);
+                                await ServeFile(context, indexPath, 200);
+                                foundIndexPage = true;
+                                break;
+                            }
+                        }
+                        if (foundIndexPage) continue;
+                        //TODO show dir listing if enabled in config
+                        logger.Log("Debug TODO show dir listing");
+                    }
+                    else await ServeFile(context, pathInFS);
                 }
                 catch (Exception ex)
                 {

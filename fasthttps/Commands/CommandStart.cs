@@ -75,6 +75,11 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
                 WriteLineError("Error whilst starting server: {0}", e.Message);
                 Environment.Exit(1);
             }
+#if DEBUG
+            Console.WriteLine(e.Message);
+            Console.WriteLine(e.Source);
+            Console.WriteLine(e.StackTrace);
+#endif
         }
 
         public void GetHelp(string locale)
