@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastHTTP.Server.CGI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,5 +23,7 @@ namespace FastHTTP.Server
         public string SinglePagePath { get; set; } = "";
         public string WWWFolder { get; set; } = "";
         public string[] IndexPages { get; set; } = new string[] { "index.html", "index.htm" };
+        public string[] CGIExtensions { get; set; } = new string[] { };
+        public Dictionary<string, CGIClient> CGIClients { get; set; } = new Dictionary<string, CGIClient>();
     }
 }

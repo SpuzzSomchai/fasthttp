@@ -59,6 +59,10 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             });
             server.ExceptionOccured += Server_OnException;
             server.ServerStarted += Server_ServerStarted;
+#if DEBUG
+            server.RegisterCGIClient(".php", "C:\\Users\\Ralph\\source\\repos\\fasthttp\\fasthttps\\bin\\Debug\\www\bin\\php7\\php-cgi.exe");
+            server.RegisterIndexPage("index.php");
+#endif
             server.Start().GetAwaiter().GetResult();
             return new CommandResult { ExitCode = 0, Message = "", State = null };
         }
@@ -94,7 +98,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
   --port-https <int 1-65535> - Sets a custom port for the HTTPS server
   --single-page <path>       - Responds with a single page to every request (disables www root dir)
   --threads <int>            - Sets the number of threads to use for the web server
-  --www-dir <path>       - Sets the working directory for the web server (defaults to [current dir]/www)");
+  --www-dir <path>           - Sets the working directory for the web server (defaults to [current dir]/www)");
         }
 
         public string GetName()
