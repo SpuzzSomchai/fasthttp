@@ -61,6 +61,29 @@ namespace FastHTTP {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html&gt;
+        ///    &lt;head&gt;
+        ///        &lt;meta charset=&quot;utf-8&quot; /&gt;
+        ///        &lt;title&gt;${title}&lt;/title&gt;
+        ///    &lt;/head&gt;
+        ///    &lt;body&gt;
+        ///        &lt;center&gt;
+        ///            &lt;h2&gt;${title}&lt;/h2&gt;
+        ///			${message}
+        ///			&lt;hr&gt;
+        ///        &lt;/center&gt;
+        ///        &lt;i&gt;FastHTTP Server v1.0&lt;/i&gt;
+        ///    &lt;/body&gt;
+        ///&lt;/html&gt;.
+        /// </summary>
+        internal static string error_page_template {
+            get {
+                return ResourceManager.GetString("error_page_template", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to # Default mimetypes file
         ///txt text/plain
         ///html text/html

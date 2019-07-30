@@ -40,6 +40,11 @@ namespace FastHTTP.Server
         private MimetypeDatabase mimes;
 
         /// <summary>
+        /// A boolean property containing the state of the web server
+        /// </summary>
+        public bool IsRunning { get; private set; } = false;
+
+        /// <summary>
         /// Creates a new HTTP/HTTPS server with the specified configuration
         /// </summary>
         /// <param name="cfg">The configuration to use</param>
@@ -60,13 +65,18 @@ namespace FastHTTP.Server
             mimes = new MimetypeDatabase(config.WWWFolder + "\\cfg\\mimetypes.lst");
         }
 
+        private string ConstructErrorPage(string title, string message)
+        {
+            return EmbeddedResources.error_page_template.Replace("${title}", title).Replace("${message}", message);
+        }
+
         private void ServeFile(HttpListenerContext ctx, string path, int statusCode = 200)
         {
             logger.Log(LogLevel.INFORMATION, "Serve file " + path);
             if(!File.Exists(path))
             {
                 logger.Log(LogLevel.INFORMATION, "404 cannot find file, returning 404 page");
-                ServeHtml(ctx, "404 File Not Found<hr><i>FastHTTP Server v1.0</i>", 404);
+                ServeHtml(ctx, ConstructErrorPage("404 Not Found", "The requested resource has not been found."), 404);
                 return;
             }
             string fileExtension = Path.GetExtension(path);
@@ -80,9 +90,9 @@ namespace FastHTTP.Server
                 {
                     ctx.Response.Headers[h.Key] = h.Value;
                 }
-                byte[] documentBytes = ctx.Response.ContentEncoding.GetBytes(res.OutDocument);
-                ctx.Response.OutputStream.Write(documentBytes, 0, documentBytes.Length);
+                byte[] documentBytes = Encoding.UTF8.GetBytes(res.OutDocument);
                 ctx.Response.ContentLength64 = documentBytes.LongLength;
+                ctx.Response.OutputStream.Write(documentBytes, 0, documentBytes.Length);
                 ctx.Response.OutputStream.Close();
                 return;
             }
@@ -98,12 +108,12 @@ namespace FastHTTP.Server
             catch (System.Security.SecurityException)
             {
                 logger.Log(LogLevel.INFORMATION, "User requested resource is not accessible, returning 403...");
-                ServeHtml(ctx, "403 Forbidden<hr><i>FastHTTP Server v1.0</i>");
+                ServeHtml(ctx, ConstructErrorPage("403 Forbidden", "You do not have permission to access the requested resource."));
             }
             catch (Exception e)
             {
                 logger.Log(LogLevel.WARNING, "Internal server error caught! Message: " + e.Message);
-                ServeHtml(ctx, "500 Internal Server Error<hr><i>FastHTTP Server v1.0</i>", 500);
+                ServeHtml(ctx, ConstructErrorPage("500 Internal Server Error", ""), 500);
             }
             ctx.Response.Close();
         }
@@ -119,75 +129,105 @@ namespace FastHTTP.Server
             ctx.Response.Close();
         }
 
+        private void ServerProc(IAsyncResult ar)
+        {
+            HttpListenerContext context = null;
+            HttpListener listener = (HttpListener)ar.AsyncState;
+            listener.BeginGetContext(new AsyncCallback(ServerProc), listener); //Make new async request
+            try
+            {
+                context = listener.EndGetContext(ar); //TODO clone request maybe? error An operation was attempted on a nonexistent network connection is thrown when too many reloads are occuring pls fix
+                string pageUrl = context.Request.Url.AbsolutePath;
+                if ((pageUrl != "/") && pageUrl.EndsWith("/")) pageUrl = pageUrl.Substring(0, pageUrl.Length - 1);
+                logger.Log(LogLevel.INFORMATION, "Got request from host {0} for URL {1}", context.Request.RemoteEndPoint, pageUrl);
+                //TODO check for malformed paths
+                //TODO fix url system
+                string pathInFS = Path.Combine(htmlFolder, Uri.UnescapeDataString(pageUrl.Substring(1)).Replace('/', Path.DirectorySeparatorChar));
+                logger.Log(LogLevel.INFORMATION, "Serving file " + pathInFS);
+                //Check if specified path is a directory. If it is, check if any indexes exist and if not, display dir listing if its enabled
+
+                if (Directory.Exists(pathInFS))
+                {
+                    bool foundIndexPage = false;
+                    //TODO break out of loop to start dir listing
+                    foreach (var indexPageName in config.IndexPages)
+                    {
+                        string indexPath = Path.Combine(pathInFS, indexPageName);
+                        if (File.Exists(indexPath))
+                        {
+                            logger.Log(LogLevel.INFORMATION, "Not showing dir listing for URL, found index file " + indexPath);
+                            ServeFile(context, indexPath, 200);
+                            foundIndexPage = true;
+                            break;
+                        }
+                    }
+                    if (foundIndexPage) return; //listener.BeginGetContext(new AsyncCallback(ServerProc), listener);
+                    //TODO show dir listing if enabled in config
+                    //TODO allow user to customize the style of the dir listing like apache web server
+                    //TODO check if cookies specify listing format
+                    //TODO check for cgi pages. ServeFile could be used to serve the CGI-ified version of the page
+                    #region Simple file listing - pls remove when better implementation is added
+                    var html = @"<meta charset='utf-8'><style>a { text-decoration: none; }</style><h2>Directory listing of " + Uri.UnescapeDataString(pageUrl) + "</h2><hr>";
+                    if (pageUrl != "/") html += "<a href=\"" + pageUrl + "/..\">🔼&nbsp;&nbsp;&nbsp;Up..</a><br>";
+                    foreach (var d in Directory.GetDirectories(pathInFS))
+                    {
+                        if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📁 {0}</a><br>", Path.GetFileName(d), pageUrl);
+                        else html += string.Format("<a href=\"/{0}\">📁 {0}</a><br>", Path.GetFileName(d));
+                    }
+                    foreach (var f in Directory.GetFiles(pathInFS))
+                    {
+                        if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📄 {0}</a><br>", Path.GetFileName(f), pageUrl);
+                        else html += string.Format("<a href=\"/{0}\">📄 {0}</a><br>", Path.GetFileName(f));
+                    }
+                    ServeHtml(context, html);
+                    #endregion
+                }
+                else ServeFile(context, pathInFS);
+            }
+            catch (HttpListenerException hlex)
+            {
+                ExceptionOccured?.Invoke(hlex);
+            }
+            catch (Exception ex)
+            {
+                ExceptionOccured?.Invoke(ex);
+                if (context != null)
+                {
+                    //Send 500 ISE
+                    logger.Log(LogLevel.WARNING, "Internal server error caught! Message: " + ex.Message);
+                    ServeHtml(context, "500 Internal Server Error<hr><i>FastHTTP Server v1.0</i>", 500);
+                }
+            }
+            //TODO revert if it doesnt work 
+            //listener.BeginGetContext(new AsyncCallback(ServerProc), listener);
+        }
+
         /// <summary>
         /// Starts the server
         /// </summary>
-        public async Task Start()
+        public async void Start()
         {
+            IsRunning = true;
             try
             {
                 hl.Start();
                 ServerStarted?.Invoke();
+                hl.BeginGetContext(new AsyncCallback(ServerProc), hl);
             }
             catch (HttpListenerException ex)
             {
                 ExceptionOccured?.Invoke(ex);
             }
-            while(true)
-            {//TODO consider removing await keywords since file serving does not require itself to be executed sequentially
-                try
-                {
-                    var context = await hl.GetContextAsync(); //TODO clone request maybe? error An operation was attempted on a nonexistent network connection is thrown when too many reloads are occuring pls fix
-                    logger.Log(LogLevel.INFORMATION, "Got request from host {0} for URL {1}", context.Request.RemoteEndPoint, context.Request.RawUrl);
-                    //TODO check for malformed paths
-                    //TODO fix url system
-                    string pathInFS = Path.Combine(htmlFolder, Uri.UnescapeDataString(context.Request.Url.AbsolutePath.Substring(1)).Replace('/', Path.DirectorySeparatorChar));
-                    logger.Log(LogLevel.INFORMATION, "Serving file " + pathInFS);
-                    //Check if specified path is a directory. If it is, check if any indexes exist and if not, display dir listing if its enabled
-                    
-                    if (Directory.Exists(pathInFS))
-                    {
-                        bool foundIndexPage = false;
-                        //TODO break out of loop to start dir listing
-                        foreach(var indexPageName in config.IndexPages)
-                        {
-                            string indexPath = Path.Combine(pathInFS, indexPageName);
-                            if(File.Exists(indexPath))
-                            {
-                                logger.Log(LogLevel.INFORMATION, "Not showing dir listing for URL, found index file " + indexPath);
-                                ServeFile(context, indexPath, 200);
-                                foundIndexPage = true;
-                                break;
-                            }
-                        }
-                        if (foundIndexPage) continue;
-                        //TODO show dir listing if enabled in config
-                        //TODO allow user to customize the style of the dir listing like apache web server
-                        //TODO check if cookies specify listing format
-                        //TODO check for cgi pages. ServeFile could be used to serve the CGI-ified version of the page
-                        #region Simple file listing - pls remove when better implementation is added
-                        var html = @"<meta charset='utf-8'><style>a { text-decoration: none; }</style><h2>Directory listing of " + Uri.UnescapeDataString(context.Request.RawUrl) + "</h2><hr>";
-                        if (context.Request.RawUrl != "/") html += "<a href=\"..\">🔼&nbsp;&nbsp;&nbsp;Up..</a><br>";
-                        foreach(var d in Directory.GetDirectories(pathInFS))
-                        {
-                            if(context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📁 {0}</a><br>", Path.GetFileName(d), context.Request.Url.AbsolutePath);
-                            else html += string.Format("<a href=\"/{0}\">📁 {0}</a><br>", Path.GetFileName(d));
-                        }
-                        foreach(var f in Directory.GetFiles(pathInFS))
-                        {
-                            if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📄 {0}</a><br>", Path.GetFileName(f), context.Request.Url.AbsolutePath);
-                            else html += string.Format("<a href=\"/{0}\">📄 {0}</a><br>", Path.GetFileName(f));
-                        }
-                        ServeHtml(context, html);
-                        #endregion
-                    }
-                    else ServeFile(context, pathInFS);
-                }
-                catch (Exception ex)
-                {
-                    ExceptionOccured?.Invoke(ex);
-                }
-            }
+        }
+
+        /// <summary>
+        /// Stops the server
+        /// </summary>
+        public void Stop()
+        {
+            logger.Log(LogLevel.INFORMATION, "Stopping server!");
+            logger.PerformCleanup();
+            IsRunning = false;
         }
 
         /// <summary>

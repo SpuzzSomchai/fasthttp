@@ -16,6 +16,7 @@ namespace FastHTTP.CLI.Server.Commands
     /// </summary>
     public class CommandStart : ICommand
     {
+        private HTTPServer server;
         public CommandResult ExecuteCommand(string[] args)
         {
             CliArgumentProcessor argumentProcessor = new CliArgumentProcessor(args, new CliArgumentOption() { Name = "port", ExpectedValueType = CliArgumentOptionValueType.Integer }, 
@@ -39,13 +40,13 @@ namespace FastHTTP.CLI.Server.Commands
  |_|  \__,_|/__/ \__||_||_| \__| \__|| .__/  
                                      |_|     
 
-FASTHTTP High Speed HTTP/HTTPS Web Server version 1.0
+FASTHTTP High Performance HTTP/HTTPS Web Server version 1.0
 Copyright (C) Ralph Vreman 2019. All rights reserved.
 ");
-
+            
             //Start the HTTP(s) server
             //This is the default configuration
-            HTTPServer server = new HTTPServer(new ServerConfiguration() {
+            server = new HTTPServer(new ServerConfiguration() {
                 DisableLogging = argumentProcessor.HasOption("disable-log") ? (bool)argumentProcessor.GetOptionValue("disable-log") : false,
                 DumpRequests = argumentProcessor.HasOption("dump-reqs") ? (bool)argumentProcessor.GetOptionValue("dump-reqs") : false,
                 DumpRequestURLs = argumentProcessor.HasOption("dump-req-urls") ? (bool)argumentProcessor.GetOptionValue("dump-req-urls") : false,
@@ -55,16 +56,26 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
                 HttpsPort = argumentProcessor.HasOption("port-https") ? (int)argumentProcessor.GetOptionValue("port-https") : 443,
                 SinglePageMode = argumentProcessor.HasOption("single-page"),
                 SinglePagePath = argumentProcessor.HasOption("single-page") ? (string)argumentProcessor.GetOptionValue("single-page") : "",
-                Threads = argumentProcessor.HasOption("threads") ? (int)argumentProcessor.GetOptionValue("threads") : 1
+                Threads = argumentProcessor.HasOption("threads") ? (int)argumentProcessor.GetOptionValue("threads") : 1,
+                DisableDirListing = argumentProcessor.HasOption("disable-dir-listing") ? (bool)argumentProcessor.GetOptionValue("disable-dir-listing") : false
             });
             server.ExceptionOccured += Server_OnException;
             server.ServerStarted += Server_ServerStarted;
 #if DEBUG
-            server.RegisterCGIClient(".php", "C:\\Users\\Ralph\\source\\repos\\fasthttp\\fasthttps\\bin\\Debug\\www\bin\\php7\\php-cgi.exe");
+            server.RegisterCGIClient(".php", "C:\\Users\\Ralph\\source\\repos\\fasthttp\\fasthttps\\bin\\Debug\\www\\bin\\php7\\php-cgi.exe");
             server.RegisterIndexPage("index.php");
+            server.RegisterCGIClient(".bat", "cmdcgi.bat");
+            server.RegisterIndexPage("index.bat");
 #endif
-            server.Start().GetAwaiter().GetResult();
+            server.Start();
+            while (server.IsRunning) ;
+            Console.CancelKeyPress += Console_CancelKeyPress;
             return new CommandResult { ExitCode = 0, Message = "", State = null };
+        }
+
+        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            server.Stop();
         }
 
         private void Server_ServerStarted()
@@ -90,6 +101,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
         {
             Console.WriteLine("Usage: fasthttps start [flags]");
             Console.WriteLine(@"Flags:
+  --disable-dir-listing      - Disables directory listing entirely
   --disable-log              - Disables logging (does not affect --dump-req-urls and --dump-reqs flag)
   --dump-reqs                - Dumps all received request bodies to tmp/[url].[content-type-mime]
   --dump-req-urls            - Dumps all received request URLs to tmp/reqs.txt

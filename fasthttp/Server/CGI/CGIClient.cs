@@ -10,7 +10,6 @@ namespace FastHTTP.Server.CGI
 {
     /// <summary>
     /// A client for the common gateway interface (CGI version 1.1).
-    /// 
     /// </summary>
     // TODO implement CGI spec 1.1 http://graphcomp.com/info/specs/cgi11.html
     public class CGIClient
@@ -20,12 +19,17 @@ namespace FastHTTP.Server.CGI
         /// </summary>
         public string Command { get; set; }
 
+        private int maxTimeout;
+
         /// <summary>
         /// Creates a new CGI 1.1 client using the specified binary
         /// </summary>
-        public CGIClient(string binaryPath)
+        /// <param name="binaryPath">The binary to use</param>
+        /// <param name="maxTimeout">Maximum running time for php</param>
+        public CGIClient(string binaryPath, int maxTimeout = 10000)
         {
             Command = binaryPath;
+            this.maxTimeout = maxTimeout;
         }
 
         /// <summary>
@@ -52,16 +56,29 @@ namespace FastHTTP.Server.CGI
             psi.Environment["SCRIPT_FILENAME"] = fileName;
             psi.Environment["SERVER_SOFTWARE"] = "fasthttps/1.0";
             switch(method)
-            {//TODO implement post
+            {//TODO implement post and other methods
                 case HttpMethod.GET:
                     psi.Environment["REQUEST_METHOD"] = "GET";
                     break;
             }
             psi.Environment["QUERY_STRING"] = queryString;
+            psi.Environment["CONTENT_LENGTH"] = "0";
             p.StartInfo = psi;
             p.Start();
-            p.WaitForExit();
-            var document = p.StandardOutput.ReadToEnd();
+            int bytesRead = 0;
+            char[] buffer = new char[1024]; //1K buffer
+            StringBuilder stdout = new StringBuilder();
+            while((bytesRead = p.StandardOutput.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                if(bytesRead != buffer.Length)
+                {
+                    for (int i = 0; i < bytesRead; i++)
+                        stdout.Append(buffer[i]);
+                }
+                else stdout.Append(buffer);
+            }
+            p.WaitForExit(maxTimeout);
+            var document = stdout.ToString();
             var documentLines = document.Split('\n');
             bool headersFound = false;
             var headers = "";
@@ -79,6 +96,7 @@ namespace FastHTTP.Server.CGI
                     result += line + "\n";
                 }
             }
+            p.Dispose();
             //TODO extract headers and feed them to web server
             return new CGIResult { Headers = HeadersParser.Parse(headers), OutDocument = result };
         }

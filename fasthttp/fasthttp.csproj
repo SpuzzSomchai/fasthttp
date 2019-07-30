@@ -56,6 +56,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>EmbeddedResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="HTTP\AccessControl\FhtAccessRulesBuiltin.cs" />
+    <Compile Include="HTTP\FhtAccessParser.cs" />
     <Compile Include="HTTP\HeadersParser.cs" />
     <Compile Include="HTTP\HttpMethod.cs" />
     <Compile Include="IO\Mime\MimeDefinitionsFileParser.cs" />
@@ -81,6 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\mimetypes.lst" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\error_page_template.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

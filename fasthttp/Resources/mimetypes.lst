@@ -56,3 +56,4 @@ ppt application/vnd.ms-powerpoint
 pptx application/vnd.openxmlformats-officedocument.presentationml.presentation
 rar application/x-rar-compressed
 rtf application/rtf
+md text/markdown
