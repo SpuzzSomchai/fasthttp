@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fasthttp", "fasthttp\fastht
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fasthttps", "fasthttps\fasthttps.csproj", "{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "parsingtest", "parsingtest\parsingtest.csproj", "{B3D734E4-8C3E-45CA-A128-5FA560082205}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AC82B1F-C16B-4ADA-AB4E-B7F30FDAB6D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3D734E4-8C3E-45CA-A128-5FA560082205}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3D734E4-8C3E-45CA-A128-5FA560082205}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3D734E4-8C3E-45CA-A128-5FA560082205}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3D734E4-8C3E-45CA-A128-5FA560082205}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

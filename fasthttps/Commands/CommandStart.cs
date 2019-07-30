@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static FastHTTP.CLI.ConsoleExtensions;
 using static System.ConsoleColor;
@@ -20,7 +21,10 @@ namespace FastHTTP.CLI.Server.Commands
         public CommandResult ExecuteCommand(string[] args)
         {
             CliArgumentProcessor argumentProcessor = new CliArgumentProcessor(args, new CliArgumentOption() { Name = "port", ExpectedValueType = CliArgumentOptionValueType.Integer }, 
-                new CliArgumentOption { Name = "help", ExpectedValueType = CliArgumentOptionValueType.None });
+                new CliArgumentOption { Name = "help", ExpectedValueType = CliArgumentOptionValueType.None },
+                new CliArgumentOption { Name = "enable-https", ExpectedValueType = CliArgumentOptionValueType.None },
+                new CliArgumentOption { Name = "port-https", ExpectedValueType = CliArgumentOptionValueType.Integer },
+                new CliArgumentOption { Name = "disable-log", ExpectedValueType = CliArgumentOptionValueType.None });
             argumentProcessor.CatchUnknownOptions = true;
             argumentProcessor.Error += FastHTTPServer.ArgumentProcessor_Error;
             argumentProcessor.ParseArguments();
@@ -50,7 +54,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
                 DisableLogging = argumentProcessor.HasOption("disable-log") ? (bool)argumentProcessor.GetOptionValue("disable-log") : false,
                 DumpRequests = argumentProcessor.HasOption("dump-reqs") ? (bool)argumentProcessor.GetOptionValue("dump-reqs") : false,
                 DumpRequestURLs = argumentProcessor.HasOption("dump-req-urls") ? (bool)argumentProcessor.GetOptionValue("dump-req-urls") : false,
-                EnableHTTPS = argumentProcessor.HasOption("enable-https") ? (bool)argumentProcessor.GetOptionValue("enable-https") : false,
+                EnableHTTPS = argumentProcessor.HasOption("enable-https"),
                 WWWFolder = argumentProcessor.HasOption("www-dir") ? (string)argumentProcessor.GetOptionValue("www-dir") : Path.Combine(Environment.CurrentDirectory, "www"),
                 HttpPort = argumentProcessor.HasOption("port") ? (int)argumentProcessor.GetOptionValue("port") : 80,
                 HttpsPort = argumentProcessor.HasOption("port-https") ? (int)argumentProcessor.GetOptionValue("port-https") : 443,
@@ -68,14 +72,16 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             server.RegisterIndexPage("index.bat");
 #endif
             server.Start();
-            while (server.IsRunning) ;
             Console.CancelKeyPress += Console_CancelKeyPress;
+            
+            while (server.IsRunning) ;
             return new CommandResult { ExitCode = 0, Message = "", State = null };
         }
 
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             server.Stop();
+            Environment.Exit(0);
         }
 
         private void Server_ServerStarted()

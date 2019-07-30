@@ -54,7 +54,7 @@ namespace FastHTTP.Server
             supportingThreads = new Thread[config.Threads];
             hl = new HttpListener();
             hl.Prefixes.Add("http://*:" + config.HttpPort + "/");
-            if(config.EnableHTTPS) hl.Prefixes.Add("http://*:" + config.HttpsPort + "/");
+            if(config.EnableHTTPS) hl.Prefixes.Add("https://*:" + config.HttpsPort + "/");
             if (!Directory.Exists(config.WWWFolder)) Directory.CreateDirectory(config.WWWFolder);
             if (!Directory.Exists(config.WWWFolder + "\\logs")) Directory.CreateDirectory(config.WWWFolder + "\\logs");
             if (!Directory.Exists(config.WWWFolder + "\\html")) Directory.CreateDirectory(config.WWWFolder + "\\html");
@@ -120,13 +120,20 @@ namespace FastHTTP.Server
 
         private void ServeHtml(HttpListenerContext ctx, string htmlData, int statusCode = 200)
         {
-            byte[] htmlDataBytes = Encoding.UTF8.GetBytes(htmlData);
-            ctx.Response.StatusCode = statusCode;
-            ctx.Response.ContentType = "text/html";
-            ctx.Response.ContentLength64 = htmlDataBytes.Length;
-            ctx.Response.ContentEncoding = Encoding.UTF8;
-            ctx.Response.OutputStream.Write(htmlDataBytes, 0, htmlDataBytes.Length);
-            ctx.Response.Close();
+            try
+            {
+                byte[] htmlDataBytes = Encoding.UTF8.GetBytes(htmlData);
+                ctx.Response.StatusCode = statusCode;
+                ctx.Response.ContentType = "text/html";
+                ctx.Response.ContentLength64 = htmlDataBytes.Length;
+                ctx.Response.ContentEncoding = Encoding.UTF8;
+                ctx.Response.OutputStream.Write(htmlDataBytes, 0, htmlDataBytes.Length);
+                ctx.Response.Close();
+            }
+            catch (Exception)
+            {
+                // Ignore exceptions from here for now
+            }
         }
 
         private void ServerProc(IAsyncResult ar)
@@ -137,7 +144,9 @@ namespace FastHTTP.Server
             try
             {
                 context = listener.EndGetContext(ar); //TODO clone request maybe? error An operation was attempted on a nonexistent network connection is thrown when too many reloads are occuring pls fix
-                string pageUrl = context.Request.Url.AbsolutePath;
+                context.Response.Headers["Server"] = "FastHTTPServer/1.0";
+                logger.Log("Raw URL is " + context.Request.Url);
+                string pageUrl = context.Request.RawUrl.ToString(); //TODO fix relative (../.) paths, they do not work for some reason
                 if ((pageUrl != "/") && pageUrl.EndsWith("/")) pageUrl = pageUrl.Substring(0, pageUrl.Length - 1);
                 logger.Log(LogLevel.INFORMATION, "Got request from host {0} for URL {1}", context.Request.RemoteEndPoint, pageUrl);
                 //TODO check for malformed paths
@@ -166,6 +175,8 @@ namespace FastHTTP.Server
                     //TODO allow user to customize the style of the dir listing like apache web server
                     //TODO check if cookies specify listing format
                     //TODO check for cgi pages. ServeFile could be used to serve the CGI-ified version of the page
+                    //Set location header
+                    context.Response.Headers["Location"] = context.Request.RawUrl;
                     #region Simple file listing - pls remove when better implementation is added
                     var html = @"<meta charset='utf-8'><style>a { text-decoration: none; }</style><h2>Directory listing of " + Uri.UnescapeDataString(pageUrl) + "</h2><hr>";
                     if (pageUrl != "/") html += "<a href=\"" + pageUrl + "/..\">🔼&nbsp;&nbsp;&nbsp;Up..</a><br>";
@@ -228,6 +239,7 @@ namespace FastHTTP.Server
             logger.Log(LogLevel.INFORMATION, "Stopping server!");
             logger.PerformCleanup();
             IsRunning = false;
+            hl.Stop();
         }
 
         /// <summary>
