@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 namespace FastHTTP.Server.Configuration.Parser
 {
     /// <summary>
-    /// A configuration section
+    /// The super class all configuration parsing related exceptions inherit from
     /// </summary>
-    public class ConfigSection
+    public class ConfigParsingException : Exception
     {
-        public Dictionary<string, ConfigVariable> Variables { get; set; } = new Dictionary<string, ConfigVariable>();
+        public int LineNumber { get; set; } = -1;
     }
 }

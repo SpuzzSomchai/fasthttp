@@ -71,10 +71,14 @@
     <Compile Include="Server\CGI\CGIClient.cs" />
     <Compile Include="Server\CGI\CGIResult.cs" />
     <Compile Include="Server\CGI\FastCGIClient.cs" />
+    <Compile Include="Server\Configuration\Parser\ConfigParsingException.cs" />
     <Compile Include="Server\Configuration\Parser\ConfigReadMode.cs" />
     <Compile Include="Server\Configuration\Parser\ConfigSection.cs" />
     <Compile Include="Server\Configuration\Parser\ConfigVariable.cs" />
     <Compile Include="Server\Configuration\Parser\ConfigVariableDataType.cs" />
+    <Compile Include="Server\Configuration\Parser\ConstantAlreadyDefinedException.cs" />
+    <Compile Include="Server\Configuration\Parser\IncludeNotFoundException.cs" />
+    <Compile Include="Server\Configuration\Parser\StringLiteralNotTerminatedException.cs" />
     <Compile Include="Server\HTTPServer.cs" />
     <Compile Include="Server\ServerConfiguration.cs" />
     <Compile Include="Server\Configuration\Parser\ServerConfigurationParser.cs" />
