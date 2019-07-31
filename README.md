@@ -1,2 +1,3 @@
 # FastHTTP
-## A high performance Web server written in C\#
+### A high performance HTTP/HTTPS server written in C\#
+
