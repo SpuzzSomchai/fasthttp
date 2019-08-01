@@ -18,7 +18,7 @@ namespace FastHTTP.Server.Configuration.Parser
             get
             {
                 //TODO localize exception
-                return string.Format("Error at ln {0}: The constant \"{0}\" has already been defined!", ConstantName, LineNumber);
+                return string.Format("Error at ln {1}: The constant \"{0}\" has already been defined!", ConstantName, LineNumber);
             }
         }
 
