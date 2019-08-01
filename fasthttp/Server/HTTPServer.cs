@@ -213,7 +213,6 @@ namespace FastHTTP.Server
                 if (Directory.Exists(pathInFS))
                 {
                     bool foundIndexPage = false;
-                    //TODO break out of loop to start dir listing
                     foreach (var indexPageName in config.IndexPages)
                     {
                         string indexPath = Path.Combine(pathInFS, indexPageName);
@@ -225,8 +224,7 @@ namespace FastHTTP.Server
                             break;
                         }
                     }
-                    if (foundIndexPage) return; //listener.BeginGetContext(new AsyncCallback(ServerProc), listener);
-                    //TODO show dir listing if enabled in config
+                    if (foundIndexPage) return;
                     //TODO allow user to customize the style of the dir listing like apache web server
                     //TODO check if cookies specify listing format
                     //Set location header
