@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastHTTP.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,8 @@ namespace FastHTTP.Server
     /// </summary>
     public class ServerExecutionContext
     {
-        public string WWWRoot { get; set; }
+        public ServerConfiguration Configuration { get; set; }
+        public HTTPServer Server { get; set; }
+        public Logger ServerLog { get; set; }
     }
 }

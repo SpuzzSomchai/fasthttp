@@ -26,5 +26,12 @@ namespace FastHTTP.CLI
             Console.WriteLine(text, x);
             Console.ResetColor();
         }
+
+        public static void PrintColorNoNewLine(ConsoleColor color, string text, params object[] x)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(text, x);
+            Console.ResetColor();
+        }
     }
 }

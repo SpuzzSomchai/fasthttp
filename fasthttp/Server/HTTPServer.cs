@@ -1,4 +1,5 @@
 ﻿using FastHTTP.CLI;
+using FastHTTP.Extensibility;
 using FastHTTP.IO.Mime;
 using FastHTTP.Logging;
 using FastHTTP.Server.CGI;
@@ -8,9 +9,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static FastHTTP.CLI.ConsoleExtensions;
 
 namespace FastHTTP.Server
 {
@@ -40,6 +43,7 @@ namespace FastHTTP.Server
         private string htmlFolder;
         private MimetypeDatabase mimes;
         private Dictionary<string, RestAPI> restAPIs;
+        private List<Extension> loadedExtensions;
 
         /// <summary>
         /// A boolean property containing the state of the web server
@@ -54,6 +58,7 @@ namespace FastHTTP.Server
         {//TODO add proper exception handling and do not assume everything is read write
             config = cfg;
             supportingThreads = new Thread[config.Threads];
+            loadedExtensions = new List<Extension>();
             restAPIs = new Dictionary<string, RestAPI>(); //TODO load REST APIs from DLLs and stuff
             hl = new HttpListener();
             hl.Prefixes.Add("http://*:" + config.HttpPort + "/");
@@ -62,10 +67,48 @@ namespace FastHTTP.Server
             if (!Directory.Exists(config.WWWFolder + "\\logs")) Directory.CreateDirectory(config.WWWFolder + "\\logs");
             if (!Directory.Exists(config.WWWFolder + "\\html")) Directory.CreateDirectory(config.WWWFolder + "\\html");
             if (!Directory.Exists(config.WWWFolder + "\\cfg")) Directory.CreateDirectory(config.WWWFolder + "\\cfg");
+            if (!Directory.Exists(config.WWWFolder + "\\ext")) Directory.CreateDirectory(config.WWWFolder + "\\ext");
             if (!File.Exists(config.WWWFolder + "\\cfg\\mimetypes.lst")) File.WriteAllText(config.WWWFolder + "\\cfg\\mimetypes.lst", EmbeddedResources.mimetypes); //TODO add default mime type list from embedded resources
             htmlFolder = config.WWWFolder + "\\html";
             if (!config.DisableLogging) logger = new StackedLogger(new ConsoleLogger(), new BufferedFileLogger(Path.Combine(config.WWWFolder, "logs\\latest.log")));
             mimes = new MimetypeDatabase(config.WWWFolder + "\\cfg\\mimetypes.lst");
+            ServerExecutionContext context = new ServerExecutionContext()
+            {
+                Server = this,
+                ServerLog = logger,
+                Configuration = config
+            };
+            // Load Extensions
+            foreach(var file in Directory.GetFiles(config.WWWFolder + "\\ext"))
+            {
+                try
+                {
+                    if (!file.EndsWith(".dll")) continue;
+                    PrintColor(ConsoleColor.Yellow, "Loading extension " + Path.GetFileName(file));
+                    var asm = Assembly.LoadFile(file);
+                    
+                    foreach (var type in asm.GetTypes())
+                    {
+                        if (typeof(Extension).IsAssignableFrom(type))
+                        {
+                            var extension = Activator.CreateInstance(type) as Extension;
+                            extension.OnEnabled(context);
+                            foreach(var api in extension.GetRestAPIs())
+                            {
+                                PrintColorNoNewLine(ConsoleColor.Yellow, "Importing REST API ");
+                                PrintColorNoNewLine(ConsoleColor.Magenta, api.URL + "\n");
+                                RegisterRESTApi(api);
+                            }
+                            loadedExtensions.Add(extension);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    logger.Log(LogLevel.ERROR, "Failed loading extension " + file);
+                    continue;
+                }
+            }
         }
 
         private string ConstructErrorPage(string title, string message)
@@ -255,6 +298,10 @@ namespace FastHTTP.Server
         /// </summary>
         public void Stop()
         {
+            foreach(var e in loadedExtensions)
+            {
+                e.OnDisabled();
+            }
             logger.Log(LogLevel.INFORMATION, "Stopping server!");
             logger.PerformCleanup();
             IsRunning = false;
