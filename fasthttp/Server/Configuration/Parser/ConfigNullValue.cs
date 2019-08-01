@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace FastHTTP.Server.Configuration.Parser
 {
-    public enum ConfigVariableDataType
+    public class ConfigNullValue
     {
-        Integer,
-        String,
-        Boolean,
-        Null,
-        Unknown
+        //Keep class empty, use with IDENTIFIER.GetType().isAssignableFrom(typeof(ConfigNullValue)) to verify if value is parsed or non parsed null
     }
 }
