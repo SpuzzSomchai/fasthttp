@@ -41,6 +41,7 @@ namespace FastHTTP.Server.Configuration.Parser
         /// <param name="name">The name of the constant to define</param>
         /// <param name="dataType">The data type to use</param>
         /// <param name="value">The value of the constant</param>
+        /// <exception cref="ConstantAlreadyDefinedException"></exception>
         public void DefineConstant(string name, ConfigVariableDataType dataType, object value, int trackingLineNumber = -1)
         {
             CheckIdentifier(name, trackingLineNumber);
@@ -427,6 +428,18 @@ namespace FastHTTP.Server.Configuration.Parser
                 return true;
             });
             Console.WriteLine(contents);
+        }
+
+        /// <summary>
+        /// Returns all nested sections contained in a specified section.
+        /// </summary>
+        /// <param name="section">The section to look in.</param>
+        /// <param name="recursive">A boolean specifying whether nested sections should be searched recursively.</param>
+        /// <returns></returns>
+        public string[] GetNestedSections(string section, bool recursive)
+        {
+            throw new NotImplementedException("oops not implemented sorry");
+            //TODO implement this method pls
         }
     }
 }
