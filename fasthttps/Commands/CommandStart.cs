@@ -23,9 +23,10 @@ namespace FastHTTP.CLI.Server.Commands
         {
             CliArgumentProcessor argumentProcessor = new CliArgumentProcessor(args, new CliArgumentOption() { Name = "port", ExpectedValueType = CliArgumentOptionValueType.Integer }, 
                 new CliArgumentOption { Name = "help", ExpectedValueType = CliArgumentOptionValueType.None },
-                new CliArgumentOption { Name = "enable-https", ExpectedValueType = CliArgumentOptionValueType.None },
                 new CliArgumentOption { Name = "port-https", ExpectedValueType = CliArgumentOptionValueType.Integer },
-                new CliArgumentOption { Name = "disable-log", ExpectedValueType = CliArgumentOptionValueType.None });
+                new CliArgumentOption { Name = "disable-log", ExpectedValueType = CliArgumentOptionValueType.None },
+                new CliArgumentOption { Name = "www-dir", ExpectedValueType = CliArgumentOptionValueType.String },
+                new CliArgumentOption { Name = "disable-dir-listing", ExpectedValueType = CliArgumentOptionValueType.None });
             argumentProcessor.CatchUnknownOptions = true;
             argumentProcessor.Error += FastHTTPServer.ArgumentProcessor_Error;
             argumentProcessor.ParseArguments();
@@ -51,6 +52,8 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             
             //Start the HTTP(s) server
             //This is the default configuration
+            //TODO implement more configuration options soon
+
             server = new HTTPServer(new ServerConfiguration() {
                 DisableLogging = argumentProcessor.HasOption("disable-log") ? (bool)argumentProcessor.GetOptionValue("disable-log") : false,
                 DumpRequests = argumentProcessor.HasOption("dump-reqs") ? (bool)argumentProcessor.GetOptionValue("dump-reqs") : false,
@@ -62,7 +65,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
                 SinglePageMode = argumentProcessor.HasOption("single-page"),
                 SinglePagePath = argumentProcessor.HasOption("single-page") ? (string)argumentProcessor.GetOptionValue("single-page") : "",
                 Threads = argumentProcessor.HasOption("threads") ? (int)argumentProcessor.GetOptionValue("threads") : 1,
-                DisableDirListing = argumentProcessor.HasOption("disable-dir-listing") ? (bool)argumentProcessor.GetOptionValue("disable-dir-listing") : false
+                DisableDirListing = argumentProcessor.HasOption("disable-dir-listing")
             });
             server.ExceptionOccured += Server_OnException;
             server.ServerStarted += Server_ServerStarted;
@@ -83,6 +86,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             server.Stop();
+            Console.WriteLine("Goodbye.");
             Environment.Exit(0);
         }
 
@@ -111,13 +115,8 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             Console.WriteLine(@"Flags:
   --disable-dir-listing      - Disables directory listing entirely
   --disable-log              - Disables logging (does not affect --dump-req-urls and --dump-reqs flag)
-  --dump-reqs                - Dumps all received request bodies to tmp/[url].[content-type-mime]
-  --dump-req-urls            - Dumps all received request URLs to tmp/reqs.txt
-  --enable-https             - Enables communication over HTTPS (including HTTP)
   --port <int 1-65535>       - Sets a custom port for the HTTP server
   --port-https <int 1-65535> - Sets a custom port for the HTTPS server
-  --single-page <path>       - Responds with a single page to every request (disables www root dir)
-  --threads <int>            - Sets the number of threads to use for the web server
   --www-dir <path>           - Sets the working directory for the web server (defaults to [current dir]/www)");
         }
 

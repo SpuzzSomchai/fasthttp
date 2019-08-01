@@ -69,6 +69,8 @@ namespace FastHTTP.Server
             if (!Directory.Exists(config.WWWFolder + "\\cfg")) Directory.CreateDirectory(config.WWWFolder + "\\cfg");
             if (!Directory.Exists(config.WWWFolder + "\\ext")) Directory.CreateDirectory(config.WWWFolder + "\\ext");
             if (!File.Exists(config.WWWFolder + "\\cfg\\mimetypes.lst")) File.WriteAllText(config.WWWFolder + "\\cfg\\mimetypes.lst", EmbeddedResources.mimetypes); //TODO add default mime type list from embedded resources
+            if (!File.Exists(config.WWWFolder + "\\cfg\\config.fcfg")) File.WriteAllText(config.WWWFolder + "\\cfg\\config.fcfg", EmbeddedResources.config_default);
+            if (!File.Exists(config.WWWFolder + "\\cfg\\cgi.fcfg")) File.WriteAllText(config.WWWFolder + "\\cfg\\cgi.fcfg", EmbeddedResources.cgi_default);
             htmlFolder = config.WWWFolder + "\\html";
             if (!config.DisableLogging) logger = new StackedLogger(new ConsoleLogger(), new BufferedFileLogger(Path.Combine(config.WWWFolder, "logs\\latest.log")));
             mimes = new MimetypeDatabase(config.WWWFolder + "\\cfg\\mimetypes.lst");
@@ -227,23 +229,28 @@ namespace FastHTTP.Server
                     //TODO show dir listing if enabled in config
                     //TODO allow user to customize the style of the dir listing like apache web server
                     //TODO check if cookies specify listing format
-                    //TODO check for cgi pages. ServeFile could be used to serve the CGI-ified version of the page
                     //Set location header
                     context.Response.Headers["Location"] = context.Request.RawUrl;
                     #region Simple file listing - pls remove when better implementation is added
-                    var html = @"<meta charset='utf-8'><style>a { text-decoration: none; }</style><h2>Directory listing of " + Uri.UnescapeDataString(pageUrl) + "</h2><hr>";
-                    if (pageUrl != "/") html += "<a href=\"" + pageUrl + "/..\">🔼&nbsp;&nbsp;&nbsp;Up..</a><br>";
-                    foreach (var d in Directory.GetDirectories(pathInFS))
+                    if(!config.DisableDirListing)
                     {
-                        if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📁 {0}</a><br>", Path.GetFileName(d), pageUrl);
-                        else html += string.Format("<a href=\"/{0}\">📁 {0}</a><br>", Path.GetFileName(d));
-                    }
-                    foreach (var f in Directory.GetFiles(pathInFS))
+                        var html = @"<meta charset='utf-8'><style>a { text-decoration: none; }</style><h2>Directory listing of " + Uri.UnescapeDataString(pageUrl) + "</h2><hr>";
+                        if (pageUrl != "/") html += "<a href=\"" + pageUrl + "/..\">🔼&nbsp;&nbsp;&nbsp;Up..</a><br>";
+                        foreach (var d in Directory.GetDirectories(pathInFS))
+                        {
+                            if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📁 {0}</a><br>", Path.GetFileName(d), pageUrl);
+                            else html += string.Format("<a href=\"/{0}\">📁 {0}</a><br>", Path.GetFileName(d));
+                        }
+                        foreach (var f in Directory.GetFiles(pathInFS))
+                        {
+                            if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📄 {0}</a><br>", Path.GetFileName(f), pageUrl);
+                            else html += string.Format("<a href=\"/{0}\">📄 {0}</a><br>", Path.GetFileName(f));
+                        }
+                        ServeHtml(context, html);
+                    } else
                     {
-                        if (context.Request.RawUrl != "/") html += string.Format("<a href=\"{1}/{0}\">📄 {0}</a><br>", Path.GetFileName(f), pageUrl);
-                        else html += string.Format("<a href=\"/{0}\">📄 {0}</a><br>", Path.GetFileName(f));
+                        ServeHtml(context, ConstructErrorPage("404 Not Found", "The requested resource has not been found."), 404);
                     }
-                    ServeHtml(context, html);
                     #endregion
                 }
                 else ServeFile(context, pathInFS);

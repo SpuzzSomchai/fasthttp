@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CommandAbout.cs" />
+    <Compile Include="Commands\CommandEditCfg.cs" />
     <Compile Include="Commands\CommandHelp.cs" />
     <Compile Include="Commands\CommandStart.cs" />
     <Compile Include="FastHTTPServer.cs" />

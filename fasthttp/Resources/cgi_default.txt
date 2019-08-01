@@ -1,0 +1,19 @@
+/*
+CGI application definition configuration file
+Define all CGI applications here in the following format:
+	section CGI_NAME {
+		binPath "ABSOLUTE_PATH_TO_APPLICATION"
+		index_page "INDEX.EXTENSION"
+		page_extension "PAGE EXTENSION TO USE"
+	}
+*/
+
+/*
+Example for PHP
+
+section php {
+	binPath "$WWW$/bin/php7/php-cgi.exe"
+	index_page "index.php"
+	page_extension ".php"
+}
+*/

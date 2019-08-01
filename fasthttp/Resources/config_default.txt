@@ -1,0 +1,29 @@
+/*
+Default configuration file for FastHTTPS
+You should modify the contents of this file.
+
+Formatting rules:
+	- Do not place // comments after a statement (same goes for multi line comments)
+	- Always put brace after section definition
+	
+If these rules are not followed, FastHTTPS will fail to parse it.
+*/
+
+section server {
+	dirListing true
+	silentMode false
+
+	section http {
+		port 8080
+	}
+	
+	section https {
+		enabled false
+		port 8443
+	}
+	
+	section cgi {
+		// For organization reasons, please put all CGI applications in cgi.fcfg
+		include "cgi.fcfg"
+	}
+}

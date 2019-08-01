@@ -61,6 +61,67 @@ namespace FastHTTP {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /*
+        ///CGI application definition configuration file
+        ///Define all CGI applications here in the following format:
+        ///	section CGI_NAME {
+        ///		binPath &quot;ABSOLUTE_PATH_TO_APPLICATION&quot;
+        ///		index_page &quot;INDEX.EXTENSION&quot;
+        ///		page_extension &quot;PAGE EXTENSION TO USE&quot;
+        ///	}
+        ///*/
+        ///
+        ////*
+        ///Example for PHP
+        ///
+        ///section php {
+        ///	binPath &quot;$WWW$/bin/php7/php-cgi.exe&quot;
+        ///	index_page &quot;index.php&quot;
+        ///	page_extension &quot;.php&quot;
+        ///}
+        ///*/.
+        /// </summary>
+        internal static string cgi_default {
+            get {
+                return ResourceManager.GetString("cgi_default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /*
+        ///Default configuration file for FastHTTPS
+        ///You should modify the contents of this file.
+        ///
+        ///Formatting rules:
+        ///	- Do not place // comments after a statement (same goes for multi line comments)
+        ///	- Always put brace after section definition
+        ///	
+        ///If these rules are not followed, FastHTTPS will fail to parse it.
+        ///*/
+        ///
+        ///section server {
+        ///	dirListing true
+        ///	silentMode false
+        ///
+        ///	section http {
+        ///		port 8080
+        ///	}
+        ///	
+        ///	section https {
+        ///		enabled false
+        ///		port 8443
+        ///	}
+        ///	
+        ///	section cgi {
+        ///		// For organization reasons [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string config_default {
+            get {
+                return ResourceManager.GetString("config_default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html&gt;
         ///    &lt;head&gt;

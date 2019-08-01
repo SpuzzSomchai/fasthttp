@@ -24,12 +24,13 @@ namespace FastHTTP.CLI.Server.Commands
             PrintColor(Yellow, "FastHTTP Server version 1.0 help page\n");
             Print("Usage: fasthttps <command> [flags] ...\nUsage: fasthttps [flags] ...\n");
             Print(@"Available Commands:
-  start [options] - Start the HTTP(s) server
-  about           - About FastHTTPServer
+  about           - About FastHTTPServer.
+  editcfg         - Launch notepad to edit the server configuration file.
+  start [options] - Start the HTTP(s) server.
 
 Flags:
   --help          - View the help page of <command> or FastHTTPServer itself.
-  --version       - Get version information for FastHTTPServer");
+  --version       - Get version information for FastHTTPServer.");
         }
 
         public string GetName()

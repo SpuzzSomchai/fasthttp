@@ -103,5 +103,11 @@
   <ItemGroup>
     <None Include="Resources\error_page_template.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\config_default.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\cgi_default.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

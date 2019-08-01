@@ -17,7 +17,7 @@ namespace FastHTTP.CLI.Server
             argumentProcessor.CatchUnknownOptions = true;
             argumentProcessor.Error += ArgumentProcessor_Error;
             argumentProcessor.ParseArguments();*/
-            CommandRegistry reg = new CommandRegistry(new CommandAbout(), new CommandHelp(), new CommandStart());
+            CommandRegistry reg = new CommandRegistry(new CommandAbout(), new CommandHelp(), new CommandStart(), new CommandEditCfg());
             if(args.Length < 1)
             {
                 ConsoleExtensions.WriteLineError("Error: No command specified, run \"{0}\" for a list of available commands.", "fasthttps --help");

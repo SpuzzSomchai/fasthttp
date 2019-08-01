@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace FastHTTP.CLI
 {
     /// <summary>
-    /// A class to process arguments passed through the command line
+    /// A class to process arguments passed through the command line.
     /// </summary>
     public class CliArgumentProcessor
     {
@@ -29,7 +29,7 @@ namespace FastHTTP.CLI
         private string command;
 
         /// <summary>
-        /// Creates a new CLI argument processor with the specified arguments
+        /// Creates a new CLI argument processor with the specified arguments.
         /// </summary>
         /// <param name="args">The array of arguments to process</param>
         public CliArgumentProcessor(string[] args, params CliArgumentOption[] programOptions)
