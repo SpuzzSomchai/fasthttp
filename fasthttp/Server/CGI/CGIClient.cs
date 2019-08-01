@@ -97,7 +97,7 @@ namespace FastHTTP.Server.CGI
                 }
             }
             p.Dispose();
-            //TODO extract headers and feed them to web server
+            //TODO [Completed] extract headers and feed them to web server
             return new CGIResult { Headers = HeadersParser.Parse(headers), OutDocument = result };
         }
     }

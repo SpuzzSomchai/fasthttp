@@ -78,6 +78,8 @@
     <Compile Include="Server\Configuration\Parser\ConfigVariableDataType.cs" />
     <Compile Include="Server\Configuration\Parser\ConstantAlreadyDefinedException.cs" />
     <Compile Include="Server\Configuration\Parser\IncludeNotFoundException.cs" />
+    <Compile Include="Server\Configuration\Parser\InvalidIdentifierNameException.cs" />
+    <Compile Include="Server\Configuration\Parser\SectionNotFoundException.cs" />
     <Compile Include="Server\Configuration\Parser\StringLiteralNotTerminatedException.cs" />
     <Compile Include="Server\HTTPServer.cs" />
     <Compile Include="Server\REST\RestAPI.cs" />

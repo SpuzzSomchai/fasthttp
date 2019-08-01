@@ -41,6 +41,7 @@ namespace FastHTTP.Server.Configuration.Parser
         /// <param name="value">The value of the constant</param>
         public void DefineConstant(string name, ConfigVariableDataType dataType, object value, int trackingLineNumber = -1)
         {
+            if (name.Contains(".")) throw new InvalidIdentifierNameException(trackingLineNumber, name);
             if (DefinedConstants.ContainsKey(name)) throw new ConstantAlreadyDefinedException(name, trackingLineNumber);
             DefinedConstants[name] = new ConfigVariable()
             {
@@ -180,8 +181,10 @@ namespace FastHTTP.Server.Configuration.Parser
                             DefineConstant(v.Name, v.DataType, v.Value, lineNumber);
                         } else if(ln.StartsWith("section "))
                         {
+                            string sname = ln.Split(' ')[1].Trim();
+                            if(sname.Contains(".")) throw new InvalidIdentifierNameException(lineNumber, sname);
                             currentReadMode = ConfigReadMode.SectionDef;
-                            currentSName = ln.Split(' ')[1].Trim();
+                            currentSName = sname;
                             blockDepth = 1;
                             continue;
                         } else if(ln.StartsWith("include "))
@@ -229,6 +232,39 @@ namespace FastHTTP.Server.Configuration.Parser
                         }
                         break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns a section object from the specified path
+        /// </summary>
+        /// <param name="path">The path of the section to return</param>
+        /// <returns></returns>
+        public ConfigSection GetSectionFromPath(string path)
+        {
+            string fullPath = "__global__." + path;
+            if (!DefinedSections.ContainsKey(fullPath)) throw new SectionNotFoundException(path);
+            return DefinedSections[fullPath];
+        }
+
+        /// <summary>
+        /// Returns an integer for the specified path
+        /// </summary>
+        /// <param name="path">The path of the integer to use</param>
+        /// <returns></returns>
+        public int GetInteger(string path)
+        {
+            ConfigVariable definedVariable;
+            string sectionName;
+            if (!path.Contains(".")) sectionName = "__global";
+            else sectionName = path.Substring(0, path.LastIndexOf('.'));
+            definedVariable = DefinedSections[sectionName].GetVariableByName(path);
+            if (definedVariable == null) return -1; //Variable not found
+            else
+            {
+                if (definedVariable.Value.GetType().IsAssignableFrom(typeof(int)))
+                    return (int)definedVariable.Value;
+                else return -1;
             }
         }
 
