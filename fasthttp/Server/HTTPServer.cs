@@ -2,6 +2,7 @@
 using FastHTTP.IO.Mime;
 using FastHTTP.Logging;
 using FastHTTP.Server.CGI;
+using FastHTTP.Server.REST;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +39,7 @@ namespace FastHTTP.Server
         private Logger logger;
         private string htmlFolder;
         private MimetypeDatabase mimes;
+        private Dictionary<string, RestAPI> restAPIs;
 
         /// <summary>
         /// A boolean property containing the state of the web server
@@ -52,6 +54,7 @@ namespace FastHTTP.Server
         {//TODO add proper exception handling and do not assume everything is read write
             config = cfg;
             supportingThreads = new Thread[config.Threads];
+            restAPIs = new Dictionary<string, RestAPI>(); //TODO load REST APIs from DLLs and stuff
             hl = new HttpListener();
             hl.Prefixes.Add("http://*:" + config.HttpPort + "/");
             if(config.EnableHTTPS) hl.Prefixes.Add("https://*:" + config.HttpsPort + "/");
@@ -145,9 +148,16 @@ namespace FastHTTP.Server
             {
                 context = listener.EndGetContext(ar); //TODO clone request maybe? error An operation was attempted on a nonexistent network connection is thrown when too many reloads are occuring pls fix
                 context.Response.Headers["Server"] = "FastHTTPServer/1.0";
-                logger.Log("Raw URL is " + context.Request.Url);
+                //logger.Log("Raw URL is " + context.Request.Url);
                 string pageUrl = context.Request.RawUrl.ToString(); //TODO fix relative (../.) paths, they do not work for some reason
                 if ((pageUrl != "/") && pageUrl.EndsWith("/")) pageUrl = pageUrl.Substring(0, pageUrl.Length - 1);
+                //Check if REST API is available
+                if(restAPIs.ContainsKey(pageUrl))
+                {
+                    logger.Log(LogLevel.INFORMATION, "Invoking REST API {0}", pageUrl);
+                    restAPIs[pageUrl].InvokeResponseReceived(context.Request, context.Response, logger);
+                    return;
+                }
                 logger.Log(LogLevel.INFORMATION, "Got request from host {0} for URL {1}", context.Request.RemoteEndPoint, pageUrl);
                 //TODO check for malformed paths
                 //TODO fix url system
@@ -216,7 +226,7 @@ namespace FastHTTP.Server
         /// <summary>
         /// Starts the server
         /// </summary>
-        public async void Start()
+        public void Start()
         {
             IsRunning = true;
             try
@@ -229,6 +239,15 @@ namespace FastHTTP.Server
             {
                 ExceptionOccured?.Invoke(ex);
             }
+        }
+
+        /// <summary>
+        /// Registers a REST api
+        /// </summary>
+        /// <param name="api">The API to register</param>
+        public void RegisterRESTApi(RestAPI api)
+        {
+            restAPIs[api.URL] = api;
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using FastHTTP.Server;
+using FastHTTP.Server.REST;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,6 +71,7 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             server.RegisterIndexPage("index.php");
             server.RegisterCGIClient(".bat", "cmdcgi.bat");
             server.RegisterIndexPage("index.bat");
+            server.RegisterRESTApi(new RestAPITest());
 #endif
             server.Start();
             Console.CancelKeyPress += Console_CancelKeyPress;
