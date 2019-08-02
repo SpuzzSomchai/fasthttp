@@ -3,6 +3,7 @@ using FastHTTP.Extensibility;
 using FastHTTP.IO.Mime;
 using FastHTTP.Logging;
 using FastHTTP.Server.CGI;
+using FastHTTP.Server.IPC;
 using FastHTTP.Server.REST;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace FastHTTP.Server
         public event HttpGenericEventHandler ServerStarted;
 
         private ServerConfiguration config;
-        private volatile Thread[] supportingThreads;
+        private volatile Dictionary<string, Thread> namedThreads;
         private HttpListener hl;
         private Logger logger;
         private string htmlFolder;
@@ -57,7 +58,7 @@ namespace FastHTTP.Server
         public HTTPServer(ServerConfiguration cfg)
         {//TODO add proper exception handling and do not assume everything is read write
             config = cfg;
-            supportingThreads = new Thread[config.Threads];
+            namedThreads = new Dictionary<string, Thread>();
             loadedExtensions = new List<Extension>();
             restAPIs = new Dictionary<string, RestAPI>(); //TODO load REST APIs from DLLs and stuff
             hl = new HttpListener();
@@ -80,6 +81,15 @@ namespace FastHTTP.Server
                 ServerLog = logger,
                 Configuration = config
             };
+            // Load IPC Server if enabled
+            if(config.EnableIPC)
+            {
+                logger.Log(LogLevel.INFORMATION, "Starting IPC Server...");
+                IPCServer ipcs = new IPCServer(context);
+                namedThreads["ipc"] = new Thread(ipcs.Start);
+                namedThreads["ipc"].Start();
+            }
+
             // Load Extensions
             foreach(var file in Directory.GetFiles(config.WWWFolder + "\\ext"))
             {
@@ -324,14 +334,30 @@ namespace FastHTTP.Server
         }
 
         /// <summary>
-        /// Registers a file name as a possible index page
+        /// Registers a file name as a possible index page.
         /// </summary>
-        /// <param name="pageName">The name to register</param>
+        /// <param name="pageName">The name to register.</param>
         public void RegisterIndexPage(string pageName)
         {
             var pages = config.IndexPages.ToList();
             pages.Add(pageName);
             config.IndexPages = pages.ToArray();
+        }
+
+        /// <summary>
+        /// Deregisters all registered CGI applications.
+        /// </summary>
+        public void DeregisterAllCGI()
+        {
+            config.CGIClients.Clear();
+        }
+
+        /// <summary>
+        /// Deregisters all registered REST APIs.
+        /// </summary>
+        public void DeregisterAllRestAPIs()
+        {
+            restAPIs.Clear();
         }
     }
 }

@@ -26,7 +26,8 @@ namespace FastHTTP.CLI.Server.Commands
                 new CliArgumentOption { Name = "port-https", ExpectedValueType = CliArgumentOptionValueType.Integer },
                 new CliArgumentOption { Name = "disable-log", ExpectedValueType = CliArgumentOptionValueType.None },
                 new CliArgumentOption { Name = "www-dir", ExpectedValueType = CliArgumentOptionValueType.String },
-                new CliArgumentOption { Name = "disable-dir-listing", ExpectedValueType = CliArgumentOptionValueType.None });
+                new CliArgumentOption { Name = "disable-dir-listing", ExpectedValueType = CliArgumentOptionValueType.None },
+                new CliArgumentOption { Name = "enable-ipc", ExpectedValueType = CliArgumentOptionValueType.None });
             argumentProcessor.CatchUnknownOptions = true;
             argumentProcessor.Error += FastHTTPServer.ArgumentProcessor_Error;
             argumentProcessor.ParseArguments();
@@ -52,7 +53,6 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
             
             //Start the HTTP(s) server
             //This is the default configuration
-            //TODO implement more configuration options soon
 
             server = new HTTPServer(new ServerConfiguration() {
                 DisableLogging = argumentProcessor.HasOption("disable-log") ? (bool)argumentProcessor.GetOptionValue("disable-log") : false,
@@ -66,9 +66,15 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
                 SinglePagePath = argumentProcessor.HasOption("single-page") ? (string)argumentProcessor.GetOptionValue("single-page") : "",
                 Threads = argumentProcessor.HasOption("threads") ? (int)argumentProcessor.GetOptionValue("threads") : 1,
                 DisableDirListing = argumentProcessor.HasOption("disable-dir-listing")
+#if DEBUG
+                , EnableIPC = true
+#else
+                , EnableIPC = argumentProcessor.HasOption("enable-ipc")
+#endif
             });
             server.ExceptionOccured += Server_OnException;
             server.ServerStarted += Server_ServerStarted;
+            //TODO add enable IPC option to arg processor
 #if DEBUG
             server.RegisterCGIClient(".php", "C:\\Users\\Ralph\\source\\repos\\fasthttp\\fasthttps\\bin\\Debug\\www\\bin\\php7\\php-cgi.exe");
             server.RegisterIndexPage("index.php");
@@ -78,9 +84,16 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
 #endif
             server.Start();
             Console.CancelKeyPress += Console_CancelKeyPress;
-            
-            while (server.IsRunning) ;
+            while (server.IsRunning)
+            {
+                Thread.Sleep(1);
+            }
             return new CommandResult { ExitCode = 0, Message = "", State = null };
+        }
+
+        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            
         }
 
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
@@ -113,11 +126,12 @@ Copyright (C) Ralph Vreman 2019. All rights reserved.
         {
             Console.WriteLine("Usage: fasthttps start [flags]");
             Console.WriteLine(@"Flags:
-  --disable-dir-listing      - Disables directory listing entirely
-  --disable-log              - Disables logging (does not affect --dump-req-urls and --dump-reqs flag)
-  --port <int 1-65535>       - Sets a custom port for the HTTP server
-  --port-https <int 1-65535> - Sets a custom port for the HTTPS server
-  --www-dir <path>           - Sets the working directory for the web server (defaults to [current dir]/www)");
+  --disable-dir-listing      - Disables directory listing entirely.
+  --disable-log              - Disables logging (does not affect --dump-req-urls and --dump-reqs flag).
+  --enable-ipc               - Enables IPC communcation through named pipes.
+  --port <int 1-65535>       - Sets a custom port for the HTTP server.
+  --port-https <int 1-65535> - Sets a custom port for the HTTPS server.
+  --www-dir <path>           - Sets the working directory for the web server (defaults to [current dir]/www).");
         }
 
         public string GetName()
