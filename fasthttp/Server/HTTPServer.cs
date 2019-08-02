@@ -315,8 +315,16 @@ namespace FastHTTP.Server
         {
             foreach(var e in loadedExtensions)
             {
-                e.OnDisabled();
+                try
+                {
+                    e.OnDisabled();
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
             }
+            loadedExtensions.Clear();
             logger.Log(LogLevel.INFORMATION, "Stopping server!");
             logger.PerformCleanup();
             IsRunning = false;

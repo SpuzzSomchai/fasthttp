@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ACF21765-4FF4-44D4-AC0E-3953D0F35150}</ProjectGuid>
+    <ProjectGuid>{63BF983C-9DB6-4633-BF4A-014A06509849}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>test_extension</RootNamespace>
-    <AssemblyName>test-extension</AssemblyName>
+    <RootNamespace>fasthttp_extension_example</RootNamespace>
+    <AssemblyName>fasthttp-extension-example</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,8 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyExtension.cs" />
-    <Compile Include="TestRESTAPI.cs" />
+    <Compile Include="API\ApiTest.cs" />
+    <Compile Include="ExampleExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +50,9 @@
       <Project>{120fb001-1193-42bc-924a-83664050427d}</Project>
       <Name>fasthttp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
