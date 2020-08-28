@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("FastHTTP Web Server")]
 [assembly: AssemblyDescription("A high performance web server supporting HTTP/HTTPS")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Ralph Vreman")]
+[assembly: AssemblyCompany("acdra1n")]
 [assembly: AssemblyProduct("FastHTTP Web Server")]
-[assembly: AssemblyCopyright("Copyright © Ralph Vreman 2019")]
+[assembly: AssemblyCopyright("Copyright © acdra1n 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
