@@ -48,7 +48,7 @@ namespace FastHTTP.CLI.Server.Commands
                                      |_|     
 
 FASTHTTP High Performance HTTP/HTTPS Web Server version 1.0
-Copyright (C) Ralph Vreman 2019. All rights reserved.
+Copyright (C) acdra1n 2019. All rights reserved.
 ");
             
             //Start the HTTP(s) server
